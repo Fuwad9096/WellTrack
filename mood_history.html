@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--dark);
+        }
+        .sidebar-item:hover:not(.active-sidebar-item) {
+            background-color: rgba(79, 70, 229, 0.05);
+            transform: translateY(-1px);
+        }
+        .sidebar-item svg {
+            margin-right: 0.5rem;
+            color: var(--dark);
+        }
+        .sidebar-item span {
+            font-weight: 500;
+        }
+        .active-sidebar-item {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .active-sidebar-item svg {
+            color: white;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #4F46E5, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text; /* Added for compatibility */
+            -webkit-text-fill-color: transparent;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        /* Mood specific colors for history items */
+        .mood-text-1 { color: #DC2626; font-weight: 600; } /* Red */
+        .mood-text-2 { color: #EA580C; font-weight: 600; } /* Orange */
+        .mood-text-3 { color: #D97706; font-weight: 600; } /* Amber */
+        .mood-text-4 { color: #16A34A; font-weight: 600; } /* Green */
+        .mood-text-5 { color: #2563EB; font-weight: 600; } /* Blue */
+    </style>
+</head>
+<body class="bg-gray-50 font-poppins">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-100 py-5 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold text-gradient">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logoutButton" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content for Mood History -->
+    <section class="py-10">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar -->
+                <div class="w-full md:w-64 card">
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="mental_health_tracking.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Mental Health Tracking</span>
+                        </a>
+                        <a href="insights_notifications.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17l-1.406-1.406A4.002 4.002 0 0112 13a4 4 0 012.594-3.594L15 8m0 0l-2-2m2 2l2 2M10 4h.01M16 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Insights and Notifications</span>
+                        </a>
+                        <a href="peer_support.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Peer Support</span>
+                        </a>
+                        <a href="assessments.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Assessments</span>
+                        </a>
+                        <a href="gamification.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                            </svg>
+                            <span>Gamification</span>
+                        </a>
+                        <a href="professional_help_page.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.202 5 7.5 5A4.5 4.5 0 003 9.5v12.5C3 23.328 4.172 24 5 24h14c.828 0 2-0.672 2-2.5V9.5A4.5 4.5 0 0016.5 5c-1.702 0-3.332.477-4.5 1.253z"/>
+                            </svg>
+                            <span>Professional Help</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Main Mood History Content -->
+                <div class="flex-1">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Mood History</h2>
+                        <p class="text-gray-700 mb-8">
+                            Review your past mood entries to observe trends and better understand your emotional journey.
+                        </p>
+
+                        <div id="mood-history-list" class="space-y-4">
+                            <p class="text-gray-500">Loading mood history...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 WellTrack. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            const moodHistoryList = document.getElementById('mood-history-list');
+            const moodHistoryMessage = document.getElementById('mood-history-message');
+
+            const moodMap = {
+                1: 'Very Bad',
+                2: 'Bad',
+                3: 'Neutral',
+                4: 'Good',
+                5: 'Great'
+            };
+
+            async function fetchMoodHistory() {
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    moodHistoryList.innerHTML = '<li>Please log in to view your mood history.</li>';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/mood_history?user_email=${userEmail}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        moodHistoryList.innerHTML = ''; // Clear loading message
+
+                        if (data.history && data.history.length > 0) {
+                            data.history.forEach(entry => {
+                                const moodText = moodMap[entry.mood_score] || 'N/A';
+                                const historyItem = document.createElement('div');
+                                historyItem.className = 'bg-gray-50 p-3 rounded-md border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center';
+                                historyItem.innerHTML = `
+                                    <div class="mb-2 sm:mb-0">
+                                        <p class="font-semibold text-lg mood-text-${entry.mood_score}">${moodText}</p>
+                                        <p class="text-sm text-gray-600">${entry.notes ? 'Notes: ' + entry.notes : 'No notes'}</p>
+                                    </div>
+                                    <p class="text-sm text-gray-500">${entry.timestamp}</p>
+                                `;
+                                moodHistoryList.appendChild(historyItem);
+                            });
+                        } else {
+                            moodHistoryList.innerHTML = '<p class="text-gray-500 text-center">No mood entries found yet. Log your mood on the Mental Health Tracking page!</p>';
+                        }
+                    } else {
+                        console.error('Failed to fetch mood history:', data.message);
+                        moodHistoryList.innerHTML = `<p class="text-red-500 text-center">Error loading history: ${data.message}</p>`;
+                    }
+                } catch (error) {
+                    console.error('Network error fetching mood history:', error);
+                    moodHistoryList.innerHTML = '<p class="text-red-500 text-center">Network error. Could not load mood history.</p>';
+                }
+            }
+
+            fetchMoodHistory();
+
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('user_email');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>

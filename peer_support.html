@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peer Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--dark);
+        }
+        .sidebar-item:hover:not(.active-sidebar-item) {
+            background-color: rgba(79, 70, 229, 0.05);
+            transform: translateY(-1px);
+        }
+        .sidebar-item svg {
+            margin-right: 0.5rem;
+            color: var(--dark);
+        }
+        .sidebar-item span {
+            font-weight: 500;
+        }
+        .active-sidebar-item {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .active-sidebar-item svg {
+            color: white;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #4F46E5, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text; /* Added for compatibility */
+            -webkit-text-fill-color: transparent;
+        }
+        /* Chat specific styles */
+        .chat-window {
+            display: flex;
+            flex-direction: column;
+            height: 500px; /* Fixed height for chat area */
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .messages-area {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #f9fafb; /* Lighter background for messages */
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+            background-color: white;
+        }
+        .message {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .my-message {
+            background-color: #e0e7ff; /* Indigo-100 */
+            align-self: flex-end;
+            margin-left: auto;
+            color: #1F2937;
+        }
+        .other-message {
+            background-color: #edf2f7; /* Gray-200 */
+            align-self: flex-start;
+            margin-right: auto;
+            color: #1F2937;
+        }
+        .status-message {
+            text-align: center;
+            font-style: italic;
+            color: #6B7280; /* Gray-500 */
+            font-size: 0.875rem;
+        }
+        .message-sender {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            color: #4B5563; /* Gray-700 */
+        }
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: #9CA3AF; /* Gray-400 */
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        .form-input { /* Added form-input styles that were missing here, assuming they are consistent across pages */
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #374151;
+            background-color: #fff;
+            background-clip: padding-box;
+            appearance: none;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-input:focus {
+            border-color: #4F46E5;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-poppins">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-100 py-5 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold text-gradient">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logoutButton" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content for Peer Support -->
+    <section class="py-10">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar -->
+                <div class="w-full md:w-64 card">
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="mental_health_tracking.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Mental Health Tracking</span>
+                        </a>
+                        <a href="insights_notifications.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17l-1.406-1.406A4.002 4.002 0 0112 13a4 4 0 012.594-3.594L15 8m0 0l-2-2m2 2l2 2M10 4h.01M16 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Insights and Notifications</span>
+                        </a>
+                        <a href="peer_support.html" class="sidebar-item active-sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Peer Support</span>
+                        </a>
+                        <a href="assessments.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Assessments</span>
+                        </a>
+                        
+                        <a href="professional_help.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.202 5 7.5 5A4.5 4.5 0 003 9.5v12.5C3 23.328 4.172 24 5 24h14c.828 0 2-0.672 2-2.5V9.5A4.5 4.5 0 0016.5 5c-1.702 0-3.332.477-4.5 1.253z"/>
+                            </svg>
+                            <span>Professional Help</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="flex-1">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Peer Support Network</h2>
+                        
+                        <p class="text-gray-700 mb-4">
+                            Connect with fellow students who understand what you're going through. Our peer support network provides a safe and anonymous space to share experiences, offer encouragement, and find comfort in shared struggles.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                            <div class="card">
+                                <h3 class="text-lg font-semibold mb-4">Join a Support Group</h3>
+                                <p class="text-gray-600 mb-4">Select a group to join the real-time chat:</p>
+                                <select id="groupSelect" class="form-input mb-4">
+                                    <option value="">-- Select a Group --</option>
+                                    <!-- Group options will be populated dynamically from backend, no hardcoded options -->
+                                </select>
+                                <button id="joinGroupButton" class="btn-primary w-full">Join Group Chat</button>
+                                <button id="leaveGroupButton" class="btn-secondary w-full mt-2 hidden">Leave Group Chat</button>
+                            </div>
+
+                            <div class="card">
+                                <h3 class="text-lg font-semibold mb-4">Group Chat</h3>
+                                <div class="chat-window">
+                                    <div id="messagesArea" class="messages-area flex flex-col">
+                                        <div class="status-message">Please select and join a group to start chatting.</div>
+                                    </div>
+                                    <div class="chat-input-area hidden" id="chatInputArea">
+                                        <input type="text" id="messageInput" placeholder="Type your message..." class="form-input flex-grow mr-2">
+                                        <button id="sendMessageButton" class="btn-primary">Send</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-8">
+                            <h3 class="text-lg font-semibold mb-4">Connect with a Peer Mentor</h3>
+                            <p class="text-gray-600 mb-4">Request to connect with a trained peer mentor for one-on-one support.</p>
+                            <a href="find_a_mentor.html" class="btn-secondary">Find a Mentor</a>
+                        </div>
+                        <div class="card mt-6">
+                            <h3 class="text-lg font-semibold mb-4">Community Forum</h3>
+                            <p class="text-gray-600 mb-4">Engage in open discussions, ask questions, and share advice with the wider WellTrack community.</p>
+                            <a href="community_forum.html" class="btn-primary inline-block">Visit Forum</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            const groupSelect = document.getElementById('groupSelect');
+            const joinGroupButton = document.getElementById('joinGroupButton');
+            const leaveGroupButton = document.getElementById('leaveGroupButton');
+            const messagesArea = document.getElementById('messagesArea');
+            const chatInputArea = document.getElementById('chatInputArea');
+            const messageInput = document.getElementById('messageInput');
+            const sendMessageButton = document.getElementById('sendMessageButton');
+
+            // Get user email and name from local storage (mock user for now, ideally from authenticated session)
+            const currentUserEmail = localStorage.getItem('user_email') || 'mockuser@example.com'; 
+            const currentUserName = localStorage.getItem('user_name') || 'Guest User'; // Added user_name
+            let currentGroup = null;
+
+            // Initialize Socket.IO connection
+            const socket = io('http://127.0.0.1:5000'); 
+
+            // --- Socket.IO Event Listeners ---
+            socket.on('connect', function() {
+                console.log('Connected to Socket.IO server!');
+                // No auto-join, user must select a group
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from Socket.IO server.');
+                addMessageToChat('You have been disconnected.', 'status');
+            });
+
+            socket.on('status_message', function(data) {
+                addMessageToChat(data.message, 'status');
+            });
+
+            socket.on('new_message', function(data) {
+                if (data.group_id === currentGroup) {
+                    addMessageToChat(data.message_text, (data.sender_email === currentUserEmail ? 'my' : 'other'), data.sender_email, data.timestamp);
+                }
+            });
+
+            socket.on('load_messages', function(data) {
+                messagesArea.innerHTML = ''; // Clear existing messages
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        addMessageToChat(msg.message_text, (msg.sender_email === currentUserEmail ? 'my' : 'other'), msg.sender_email, msg.timestamp);
+                    });
+                } else {
+                    addMessageToChat('No messages in this group yet. Be the first to say hi!', 'status');
+                }
+                scrollToBottom();
+            });
+
+            socket.on('error', function(data) {
+                console.error('Socket error:', data.message);
+                addMessageToChat(`Error: ${data.message}`, 'status');
+            });
+
+            // --- Chat UI Functions ---
+            function addMessageToChat(text, type, sender = '', timestamp = '') {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}-message`;
+
+                if (type === 'other') {
+                    const senderSpan = document.createElement('div');
+                    senderSpan.className = 'message-sender';
+                    senderSpan.textContent = sender; // Display sender email
+                    messageDiv.appendChild(senderSpan);
+                } else if (type === 'my') {
+                     // For 'my' messages, display 'You' instead of the email
+                    const senderSpan = document.createElement('div');
+                    senderSpan.className = 'message-sender';
+                    senderSpan.textContent = 'You';
+                    messageDiv.appendChild(senderSpan);
+                }
+
+
+                const textContent = document.createElement('p');
+                textContent.textContent = text;
+                messageDiv.appendChild(textContent);
+
+                if (timestamp) {
+                    const timeSpan = document.createElement('div');
+                    timeSpan.className = 'message-timestamp';
+                    // Format timestamp, ensuring it's a valid date string
+                    const dateObj = new Date(timestamp);
+                    if (!isNaN(dateObj)) { // Check if date is valid
+                        timeSpan.textContent = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    } else {
+                        timeSpan.textContent = 'Invalid Date'; // Fallback for invalid date string
+                    }
+                    messageDiv.appendChild(timeSpan);
+                }
+                
+                messagesArea.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            function scrollToBottom() {
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }
+
+            // --- Button Handlers ---
+            joinGroupButton.addEventListener('click', function() {
+                const selectedGroup = groupSelect.value;
+                if (!currentUserEmail) {
+                    addMessageToChat('Please log in to join a group chat.', 'status');
+                    return;
+                }
+                if (selectedGroup && selectedGroup !== currentGroup) {
+                    if (currentGroup) {
+                        // Leave previous group if already in one
+                        socket.emit('leave_group', { group_id: currentGroup, user_email: currentUserEmail });
+                    }
+                    currentGroup = selectedGroup;
+                    socket.emit('join_group', { group_id: currentGroup, user_email: currentUserEmail });
+                    addMessageToChat(`Joining "${groupSelect.options[groupSelect.selectedIndex].text}"...`, 'status');
+                    chatInputArea.classList.remove('hidden');
+                    joinGroupButton.classList.add('hidden');
+                    leaveGroupButton.classList.remove('hidden');
+                } else if (selectedGroup === currentGroup) {
+                    addMessageToChat('You are already in this group!', 'status');
+                } else {
+                    addMessageToChat('Please select a group to join.', 'status');
+                }
+            });
+
+            leaveGroupButton.addEventListener('click', function() {
+                if (currentGroup) {
+                    socket.emit('leave_group', { group_id: currentGroup, user_email: currentUserEmail });
+                    currentGroup = null;
+                    messagesArea.innerHTML = '<div class="status-message">You have left the chat. Please select and join another group.</div>';
+                    chatInputArea.classList.add('hidden');
+                    joinGroupButton.classList.remove('hidden');
+                    leaveGroupButton.classList.add('hidden');
+                }
+            });
+
+            sendMessageButton.addEventListener('click', function() {
+                const messageText = messageInput.value.trim();
+                if (messageText && currentGroup) {
+                    socket.emit('send_message', {
+                        group_id: currentGroup,
+                        user_email: currentUserEmail,
+                        message_text: messageText
+                    });
+                    messageInput.value = ''; // Clear input field
+                }
+            });
+
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent new line
+                    sendMessageButton.click();
+                }
+            });
+
+            // Function to handle logout (retained)
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('user_email'); 
+                localStorage.removeItem('user_name'); // Clear user name on logout
+                // Optionally leave all socket rooms before redirecting
+                if (socket.connected) {
+                    socket.emit('leave_group', { group_id: currentGroup, user_email: currentUserEmail }); // Leave current chat group
+                    socket.emit('leave_insights_room', { user_email: currentUserEmail }); // Leave insights room if joined
+                    socket.disconnect(); 
+                }
+                window.location.href = 'index.html'; 
+            });
+
+            // Fetch available groups from backend and populate select
+            fetch('http://127.0.0.1:5000/peer_groups')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.groups && data.groups.length > 0) {
+                        data.groups.forEach(group => {
+                            const option = document.createElement('option');
+                            option.value = group.group_id;
+                            option.textContent = group.group_name;
+                            groupSelect.appendChild(option);
+                        });
+                    } else {
+                        // No groups found
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = '-- No groups available --';
+                        groupSelect.appendChild(option);
+                        groupSelect.disabled = true;
+                        joinGroupButton.disabled = true;
+                    }
+                })
+                .catch(err => {
+                    // fallback: show a message or keep select empty
+                    console.error('Failed to load groups:', err);
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '-- Error loading groups --';
+                    groupSelect.appendChild(option);
+                    groupSelect.disabled = true;
+                    joinGroupButton.disabled = true;
+                });
+        });
+    </script>
+</body>
+</html>

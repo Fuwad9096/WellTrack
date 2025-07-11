@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find a Mentor - WellTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light, #f8fafc);
+            color: var(--dark, #1e293b);
+        }
+        :root {
+            --primary: #4F46E5; /* Indigo-600 */
+            --light: #F8FAFC; /* Slate-50 */
+            --dark: #1E293B; /* Slate-900 */
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--dark);
+        }
+        .sidebar-item:hover:not(.active-sidebar-item) {
+            background-color: rgba(79, 70, 229, 0.05);
+            transform: translateY(-1px);
+        }
+        .sidebar-item svg {
+            margin-right: 0.5rem;
+            color: var(--dark);
+        }
+        .sidebar-item span {
+            font-weight: 500;
+        }
+        .active-sidebar-item {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .active-sidebar-item svg {
+            color: white;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #4F46E5, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .form-input {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #374151;
+            background-color: #fff;
+            background-clip: padding-box;
+            appearance: none;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-input:focus {
+            border-color: #4F46E5;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+        }
+        .message-box {
+            background-color: #fef2f2; /* Red-100 */
+            color: #ef4444; /* Red-500 */
+            border: 1px solid #fca5a5; /* Red-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem; /* Smaller font for messages */
+        }
+        .message-box.active {
+            display: block; /* Show when active */
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green-100 */
+            border-color: #6ee7b7; /* Green-300 */
+            color: #10b981; /* Green-600 */
+        }
+        .message-box.info {
+            background-color: #e0f2fe; /* Light blue */
+            border-color: #93c5fd; /* Medium blue */
+            color: #2563eb; /* Dark blue */
+        }
+        .mentor-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+        }
+        .mentor-card .initials-circle {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #e0e7ff; /* Indigo-100 */
+            color: #4338ca; /* Indigo-700 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-poppins min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-100 py-5 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold text-gradient">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logoutButton" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content for Find a Mentor -->
+    <section class="py-10 flex-grow">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar -->
+                <div class="w-full md:w-64 card">
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="mental_health_tracking.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Mental Health Tracking</span>
+                        </a>
+                        <a href="insights_notifications.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17l-1.406-1.406A4.002 4.002 0 0112 13a4 4 0 012.594-3.594L15 8m0 0l-2-2m2 2l2 2M10 4h.01M16 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Insights and Notifications</span>
+                        </a>
+                        <a href="peer_support.html" class="sidebar-item active-sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Peer Support</span>
+                        </a>
+                        <a href="assessments.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Assessments</span>
+                        </a>
+                        <a href="gamification.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                            </svg>
+                            <span>Gamification</span>
+                        </a>
+                        <a href="professional_help.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.202 5 7.5 5A4.5 4.5 0 003 9.5v12.5C3 23.328 4.172 24 5 24h14c.828 0 2-0.672 2-2.5V9.5A4.5 4.5 0 0016.5 5c-1.702 0-3.332.477-4.5 1.253z"/>
+                            </svg>
+                            <span>Professional Help</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="flex-1">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Find a Peer Mentor</h2>
+                        
+                        <p class="text-gray-700 mb-4">
+                            Connect with experienced peer mentors who can provide one-on-one support, guidance, and share their insights. 
+                            You can browse available mentors or submit a request for a mentor based on your specific needs.
+                        </p>
+
+                        <!-- Message Box for Feedback -->
+                        <div id="mentor-message" class="message-box active">
+                            <p>Loading mentor options...</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                            <!-- Browse Mentors Section -->
+                            <div class="card">
+                                <h3 class="text-lg font-semibold mb-4">Available Mentors</h3>
+                                <div id="mentors-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                    <p class="text-gray-500">No mentors available at the moment. Check back later!</p>
+                                    <!-- Mentors will be loaded here by JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Request a Mentor Form -->
+                            <div class="card">
+                                <h3 class="text-lg font-semibold mb-4">Request a Mentor</h3>
+                                <form id="mentor-request-form">
+                                    <div class="mb-4">
+                                        <label for="requestSubject" class="block text-gray-700 text-sm font-semibold mb-2">Subject of Request:</label>
+                                        <input type="text" id="requestSubject" class="form-input" placeholder="e.g., Academic Stress, Time Management" required>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="requestDetails" class="block text-gray-700 text-sm font-semibold mb-2">Details of Support Needed:</label>
+                                        <textarea id="requestDetails" rows="5" class="form-input" placeholder="Describe what you're looking for in a mentor and what challenges you're facing." required></textarea>
+                                    </div>
+                                    <div class="mb-6">
+                                        <label for="preferredMentor" class="block text-gray-700 text-sm font-semibold mb-2">Preferred Mentor (Optional):</label>
+                                        <select id="preferredMentor" class="form-input">
+                                            <option value="">Any Available Mentor</option>
+                                            <!-- Specific mentors can be loaded here from the database if desired -->
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn-primary w-full">Submit Mentor Request</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Mentor Request Status Notification Section -->
+                        <div class="card mt-8" id="mentor-request-status-section">
+                            <h3 class="text-lg font-semibold mb-4">Your Mentor Requests</h3>
+                            <div id="mentor-requests-status-list">
+                                <p class="text-gray-500">No mentor requests submitted yet.</p>
+                            </div>
+                        </div>
+
+                        <!-- Visit Forum Button -->
+                        <div class="flex justify-end mt-8">
+                            <a href="community_forum.html" class="btn-primary text-center block w-full md:w-auto">Visit Forum</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            const mentorsList = document.getElementById('mentors-list');
+            const mentorRequestForm = document.getElementById('mentor-request-form');
+            const preferredMentorSelect = document.getElementById('preferredMentor'); // NEW
+            const mentorMessage = document.getElementById('mentor-message');
+            const mentorRequestsStatusList = document.getElementById('mentor-requests-status-list'); // NEW
+
+            const currentUserEmail = localStorage.getItem('user_email'); 
+            const currentUserName = localStorage.getItem('user_name');
+
+            // --- Utility Functions ---
+            function showMessage(element, message, type = 'error') {
+                element.textContent = message;
+                element.classList.remove('success', 'error', 'info');
+                element.classList.add(type, 'active');
+                setTimeout(() => {
+                    element.classList.remove('active');
+                }, 5000);
+            }
+
+            // --- Fetch and Display Mentors ---
+            async function fetchMentors() {
+                showMessage(mentorMessage, 'Loading available mentors...', 'info'); 
+                mentorsList.innerHTML = ''; // Clear previous content
+                preferredMentorSelect.innerHTML = '<option value="">Any Available Mentor</option>'; // Reset dropdown
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/mentors');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        if (result.mentors.length > 0) {
+                            result.mentors.forEach(mentor => {
+                                // Add to mentors list
+                                const mentorDiv = document.createElement('div');
+                                mentorDiv.className = 'mentor-card';
+                                const initials = mentor.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                                mentorDiv.innerHTML = `
+                                    <div class="initials-circle">${initials}</div>
+                                    <div>
+                                        <h4 class="font-bold text-lg text-gray-800">${mentor.name}</h4>
+                                        <p class="text-indigo-600 text-sm">${mentor.expertise}</p>
+                                        <p class="text-gray-600 text-sm">${mentor.bio}</p>
+                                        <p class="text-gray-500 text-xs">Availability: ${mentor.availability}</p>
+                                    </div>
+                                `;
+                                mentorsList.appendChild(mentorDiv);
+
+                                // Add to preferred mentor dropdown (use mentor_id as value)
+                                const option = document.createElement('option');
+                                option.value = mentor.mentor_id;
+                                option.textContent = `${mentor.name} (${mentor.expertise})`;
+                                preferredMentorSelect.appendChild(option);
+                            });
+                            showMessage(mentorMessage, 'Mentors loaded successfully.', 'success'); // Change to success after loading
+                        } else {
+                            mentorsList.innerHTML = '<p class="text-gray-500">No mentors available at the moment. Check back later!</p>';
+                            showMessage(mentorMessage, 'No mentors found.', 'info');
+                        }
+                    } else {
+                        showMessage(mentorMessage, result.message || 'Failed to fetch mentors.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error fetching mentors:', error);
+                    showMessage(mentorMessage, 'Network error or server unavailable. Failed to load mentors.', 'error');
+                }
+            }
+
+            // --- Fetch and Display Mentor Requests Status ---
+            async function fetchMentorRequestsStatus() {
+                if (!currentUserEmail) return;
+                mentorRequestsStatusList.innerHTML = '<p class="text-gray-500">Loading your mentor requests...</p>';
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/mentor_requests?user_email=' + encodeURIComponent(currentUserEmail));
+                    const result = await response.json();
+
+                    if (result.success) {
+                        mentorRequestsStatusList.innerHTML = ''; // Clear previous status
+                        if (result.requests.length > 0) {
+                            result.requests.forEach(request => {
+                                const requestDiv = document.createElement('div');
+                                requestDiv.className = 'p-4 mb-4 rounded-lg shadow-sm';
+                                requestDiv.classList.add(request.status === 'accepted' ? 'bg-green-50' : 'bg-yellow-50');
+                                requestDiv.innerHTML = `
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="font-semibold text-gray-800">${request.subject}</h4>
+                                        <span class="text-xs ${request.status === 'accepted' ? 'text-green-600' : 'text-yellow-600'} font-medium">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span>
+                                    </div>
+                                    <p class="text-gray-700 text-sm mb-2">${request.details}</p>
+                                    <p class="text-gray-500 text-xs">Requested on: ${new Date(request.requested_on).toLocaleString()}</p>
+                                `;
+                                mentorRequestsStatusList.appendChild(requestDiv);
+                            });
+                        } else {
+                            mentorRequestsStatusList.innerHTML = '<p class="text-gray-500">No mentor requests submitted yet.</p>';
+                        }
+                    } else {
+                        mentorRequestsStatusList.innerHTML = '<p class="text-red-500">Error loading mentor requests.</p>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching mentor requests status:', error);
+                    mentorRequestsStatusList.innerHTML = '<p class="text-red-500">Network error. Failed to load mentor requests status.</p>';
+                }
+            }
+
+            // --- Fetch and Display Mentor Request Statuses ---
+            async function fetchMentorRequestStatuses() {
+                if (!currentUserEmail) return;
+                const statusList = document.getElementById('mentor-requests-status-list');
+                statusList.innerHTML = '<p class="text-gray-500">Loading your mentor requests...</p>';
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/mentor_requests_user?user_email=' + encodeURIComponent(currentUserEmail));
+                    const result = await response.json();
+                    if (result.success && result.requests.length > 0) {
+                        statusList.innerHTML = '';
+                        result.requests.forEach(req => {
+                            let statusClass = req.status === 'approved'
+                                ? 'border-green-500 bg-green-50 text-green-800'
+                                : 'border-yellow-400 bg-yellow-50 text-yellow-800';
+                            let statusText = req.status === 'approved' ? 'Accepted' : 'Pending';
+                            let statusDot = req.status === 'approved'
+                                ? '<span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>'
+                                : '<span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-2"></span>';
+                            const div = document.createElement('div');
+                            div.className = `flex items-center border-l-4 ${statusClass} rounded px-4 py-3 mb-2 shadow-sm`;
+                            div.innerHTML = `
+                                ${statusDot}
+                                <span class="font-semibold mr-2">${statusText}</span>
+                                <span class="mx-2 text-gray-400">|</span>
+                                <span class="flex-1">${req.request_message}</span>
+                                <span class="ml-2 text-xs text-gray-400">${new Date(req.requested_at).toLocaleString()}</span>
+                            `;
+                            statusList.appendChild(div);
+                        });
+                    } else {
+                        statusList.innerHTML = '<p class="text-gray-500">No mentor requests submitted yet.</p>';
+                    }
+                } catch (e) {
+                    statusList.innerHTML = '<p class="text-red-500">Failed to load mentor request statuses.</p>';
+                }
+            }
+
+            // --- Handle Mentor Request Submission ---
+            mentorRequestForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                showMessage(mentorMessage, 'Submitting mentor request...', 'info');
+
+                if (!currentUserEmail) {
+                    showMessage(mentorMessage, 'You must be logged in to submit a mentor request.', 'error');
+                    return;
+                }
+
+                const requestSubject = document.getElementById('requestSubject').value.trim();
+                const requestDetails = document.getElementById('requestDetails').value.trim();
+                const preferredMentor = preferredMentorSelect.value; // mentor_id as string
+
+                if (!requestSubject || !requestDetails) {
+                    showMessage(mentorMessage, 'Please fill in both the subject and details of your request.', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/mentor_request', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_email: currentUserEmail,
+                            mentor_id: preferredMentor === '' ? null : parseInt(preferredMentor),
+                            request_message: requestSubject + ': ' + requestDetails
+                        })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showMessage(mentorMessage, result.message, 'success');
+                        mentorRequestForm.reset();
+                        fetchMentorRequestsStatus(); // Refresh mentor requests status
+                    } else {
+                        showMessage(mentorMessage, result.message || 'Failed to submit mentor request.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error submitting mentor request:', error);
+                    showMessage(mentorMessage, 'Network error. Failed to submit mentor request.', 'error');
+                }
+            });
+
+            // --- Poll for Approval Notification ---
+            // (DISABLED: No browser popups)
+            // async function pollMentorApproval() {
+            //     if (!currentUserEmail) return;
+            //     try {
+            //         const response = await fetch('http://127.0.0.1:5000/mentor_matches?user_email=' + encodeURIComponent(currentUserEmail));
+            //         const result = await response.json();
+            //         if (result.success && result.matches && result.matches.length > 0) {
+            //             // Show notification if a match is found
+            //             showNotification('Your mentor request has been approved!');
+            //         }
+            //     } catch (e) {
+            //         // Ignore errors silently
+            //     }
+            // }
+
+            // Notification function (DISABLED)
+            // function showNotification(message) {
+            //     if (window.Notification && Notification.permission === 'granted') {
+            //         new Notification(message);
+            //     } else if (window.Notification && Notification.permission !== 'denied') {
+            //         Notification.requestPermission().then(function (permission) {
+            //             if (permission === 'granted') {
+            //                 new Notification(message);
+            //             }
+            //         });
+            //     }
+            // }
+
+            // setInterval(pollMentorApproval, 10000); // DISABLED
+
+            // --- Logout Function ---
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('user_email'); 
+                localStorage.removeItem('user_name');
+                window.location.href = 'index.html'; 
+            });
+
+            // Initial load
+            fetchMentors();
+            fetchMentorRequestsStatus(); // Load mentor requests status on initial load
+            fetchMentorRequestStatuses(); // Load mentor request statuses on initial load
+        });
+    </script>
+</body>
+</html>

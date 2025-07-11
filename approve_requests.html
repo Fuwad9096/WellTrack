@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Approve Mentor Requests</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
+        th { background: #f0f0f0; }
+        button { padding: 0.3em 1em; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Pending Mentor Requests</h1>
+    <div id="message"></div>
+    <table id="requestsTable">
+        <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>User Email</th>
+                <th>Mentor ID</th>
+                <th>Message</th>
+                <th>Requested At</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+    function fetchRequests() {
+        fetch('/mentor_requests_pending')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.querySelector('#requestsTable tbody');
+                tbody.innerHTML = '';
+                if (data.success && data.requests.length > 0) {
+                    data.requests.forEach(req => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${req.request_id}</td>
+                            <td>${req.user_email}</td>
+                            <td>${req.mentor_id}</td>
+                            <td>${req.request_message}</td>
+                            <td>${req.requested_at}</td>
+                            <td><button onclick="approveRequest(${req.request_id}, '${req.user_email}', ${req.mentor_id})">Approve</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6">No pending requests.</td></tr>';
+                }
+            });
+    }
+
+    function approveRequest(requestId, userEmail, mentorId) {
+        fetch('/approve_mentor_request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: requestId, user_email: userEmail, mentor_id: mentorId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const msgDiv = document.getElementById('message');
+            if (data.success) {
+                msgDiv.textContent = 'Request approved and match created!';
+                msgDiv.className = 'success';
+                fetchRequests();
+            } else {
+                msgDiv.textContent = data.message || 'Error approving request.';
+                msgDiv.className = 'error';
+            }
+        });
+    }
+
+    window.onload = fetchRequests;
+    </script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAD-7 Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--dark);
+        }
+        .sidebar-item:hover:not(.active-sidebar-item) {
+            background-color: rgba(79, 70, 229, 0.05);
+            transform: translateY(-1px);
+        }
+        .sidebar-item svg {
+            margin-right: 0.5rem;
+            color: var(--dark);
+        }
+        .sidebar-item span {
+            font-weight: 500;
+        }
+        .active-sidebar-item {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .active-sidebar-item svg {
+            color: white;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #4F46E5, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text; 
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .question-option-label {
+            display: inline-flex; 
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #D1D5DB; 
+            border-radius: 0.5rem; 
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-right: 0.75rem; 
+            margin-bottom: 0.75rem; 
+        }
+        .question-option-label:hover {
+            background-color: #F3F4F6; 
+            border-color: #9CA3AF; 
+        }
+        .question-option-label input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            border: 2px solid #9CA3AF; 
+            background-color: #fff;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            flex-shrink: 0; 
+            margin-right: 0.75rem; 
+            transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+        }
+        .question-option-label input[type="radio"]:checked {
+            border-color: var(--primary);
+            background-color: var(--primary);
+        }
+        .question-option-label input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background-color: white;
+        }
+        .question-option-label input[type="radio"]:focus {
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+        }
+
+        .question-item {
+            margin-bottom: 1.75rem; 
+            padding-bottom: 1.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-box {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .result-box.mild { background-color: #ede9fe; border: 1px solid #a78bfa; color: #6d28d9; } 
+        .result-box.moderate { background-color: #ffe4e6; border: 1px solid #fda4af; color: #be123c; } 
+        .result-box.severe { background-color: #fee2e2; border: 1px solid #ef4444; color: #dc2626; } 
+        .result-box.minimal { background-color: #d1fae5; border: 1px solid #6ee7b7; color: #10b981; } 
+        .result-box.error { 
+            background-color: #fef2f2; 
+            color: #ef4444; 
+            border: 1px solid #fca5a5; 
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-poppins">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-100 py-5 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold text-gradient">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logoutButton" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content for GAD-7 Assessment -->
+    <section class="py-10">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar -->
+                <div class="w-full md:w-64 card">
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="mental_health_tracking.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Mental Health Tracking</span>
+                        </a>
+                        <a href="insights_notifications.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17l-1.406-1.406A4.002 4.002 0 0112 13a4 4 0 012.594-3.594L15 8m0 0l-2-2m2 2l2 2M10 4h.01M16 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Insights and Notifications</span>
+                        </a>
+                        <a href="peer_support.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Peer Support</span>
+                        </a>
+                        <a href="assessments.html" class="sidebar-item active-sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Assessments</span>
+                        </a>
+                        <a href="gamification.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                            </svg>
+                            <span>Gamification</span>
+                        </a>
+                        <a href="professional_help_page.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.202 5 7.5 5A4.5 4.5 0 003 9.5v12.5C3 23.328 4.172 24 5 24h14c.828 0 2-0.672 2-2.5V9.5A4.5 4.5 0 0016.5 5c-1.702 0-3.332.477-4.5 1.253z"/>
+                            </svg>
+                            <span>Professional Help</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Main Content for GAD-7 Assessment -->
+                <div class="flex-1">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Generalized Anxiety Disorder 7-item (GAD-7) Scale</h2>
+                        <p class="text-gray-600 mb-6 font-medium">Over the last 2 weeks, how often have you been bothered by the following problems?</p>
+                            
+                        <form id="gad7-form" class="space-y-6">
+                            <!-- Question 1 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">1. Feeling nervous, anxious, or on edge?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q1" value="0" required>
+                                        <span class="text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q1" value="1">
+                                        <span class="text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q1" value="2">
+                                        <span class="text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q1" value="3">
+                                        <span class="text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Question 2 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">2. Not being able to stop or control worrying?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q2" value="0" required>
+                                        <span class="text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q2" value="1">
+                                        <span class="text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q2" value="2">
+                                        <span class="text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q2" value="3">
+                                        <span class="text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Question 3 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">3. Worrying too much about different things?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q3" value="0" required>
+                                        <span class="text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q3" value="1">
+                                        <span class="text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q3" value="2">
+                                        <span class="text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q3" value="3">
+                                        <span class="text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Question 4 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">4. Trouble relaxing?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q4" value="0" required>
+                                        <span class="text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q4" value="1">
+                                        <span class="text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q4" value="2">
+                                        <span class="text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q4" value="3">
+                                        <span class="text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Question 5 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">5. Being so restless that it's hard to sit still?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q5" value="0" required>
+                                        <span class="text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q5" value="1">
+                                        <span class="text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q5" value="2">
+                                        <span class="text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q5" value="3">
+                                        <span class="text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Question 6 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">6. Becoming easily annoyed or irritable?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q6" value="0" required>
+                                        <span class="text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q6" value="1">
+                                        <span class="text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q6" value="2">
+                                        <span class="ml-2 text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q6" value="3">
+                                        <span class="ml-2 text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Question 7 -->
+                            <div class="question-item">
+                                <p class="font-medium text-gray-800 mb-3">7. Feeling afraid as if something awful might happen?</p>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q7" value="0" required>
+                                        <span class="ml-2 text-gray-700">Not at all</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q7" value="1">
+                                        <span class="ml-2 text-gray-700">Several days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q7" value="2">
+                                        <span class="ml-2 text-gray-700">More than half the days</span>
+                                    </label>
+                                    <label class="question-option-label">
+                                        <input type="radio" name="gad7_q7" value="3">
+                                        <span class="ml-2 text-gray-700">Nearly every day</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="gad7-submit-btn" class="btn-primary w-full mt-4">Get GAD-7 Results</button>
+                            <div id="gad7-result" class="result-box hidden"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 WellTrack. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+
+            // --- GAD-7 Logic ---
+            const gad7Form = document.getElementById('gad7-form');
+            const gad7ResultDiv = document.getElementById('gad7-result');
+            const gad7SubmitBtn = document.getElementById('gad7-submit-btn');
+
+            gad7Form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                gad7SubmitBtn.disabled = true;
+                gad7SubmitBtn.textContent = 'Calculating & Submitting...';
+                gad7ResultDiv.classList.add('hidden'); // Hide previous result
+
+                // Collect answers as array
+                let answers = [];
+                let allQuestionsAnswered = true;
+                for (let i = 1; i <= 7; i++) {
+                    const selectedOption = document.querySelector(`input[name="gad7_q${i}"]:checked`);
+                    if (selectedOption) {
+                        answers.push(parseInt(selectedOption.value));
+                    } else {
+                        allQuestionsAnswered = false;
+                        break;
+                    }
+                }
+
+                if (!allQuestionsAnswered) {
+                    displayResult(gad7ResultDiv, 'Please answer all questions before submitting.', 'error');
+                    gad7SubmitBtn.disabled = false;
+                    gad7SubmitBtn.textContent = 'Get GAD-7 Results';
+                    return;
+                }
+
+                // Get user email
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    displayResult(gad7ResultDiv, 'Could not save results: User not logged in.', 'error');
+                    gad7SubmitBtn.disabled = false;
+                    gad7SubmitBtn.textContent = 'Get GAD-7 Results';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/submit_gad7', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_email: userEmail, answers })
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        displayResult(gad7ResultDiv, `Failed to save or calculate results: ${result.message}`, 'error');
+                    } else {
+                        // Use backend's color, severity, advice
+                        gad7ResultDiv.innerHTML = `
+                            <h3 class="font-bold text-lg">Your Score: ${result.total_score}</h3>
+                            <p>Severity: <span style="color:${result.color};font-weight:bold">${result.severity}</span></p>
+                            <p>Advice: ${result.advice}</p>
+                        `;
+                        gad7ResultDiv.className = `result-box active`;
+                        gad7ResultDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    displayResult(gad7ResultDiv, 'Network error submitting assessment.', 'error');
+                } finally {
+                    gad7SubmitBtn.disabled = false;
+                    gad7SubmitBtn.textContent = 'Get GAD-7 Results';
+                }
+            });
+
+
+            // --- Helper function to display results ---
+            function displayResult(element, message, type = '') {
+                element.innerHTML = `<p class="font-bold text-lg">${message}</p>`;
+                element.className = `result-box ${type} active`;
+                element.classList.remove('hidden'); // Ensure it's visible
+            }
+
+            // Function to handle logout
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('user_email'); 
+                window.location.href = 'index.html'; 
+            });
+        });
+    </script>
+</body>
+</html>

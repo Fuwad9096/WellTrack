@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Well-being Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-100 py-5">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="text-gray-600 hover:text-indigo-600">Home</a>
+                <a href="#Features" class="text-gray-600 hover:text-indigo-600">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <a href="login.html" class="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-50">Login</a>
+                <a href="signup.html" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative py-24 overflow-hidden bg-gradient-to-br from-indigo-50 to-blue-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-16 md:mb-0">
+                    <h1 class="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">Your Well-being <span class="bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">Companion</span></h1>
+                    <p class="text-xl text-gray-600 mb-8 leading-relaxed">Track your mental health, get personalized support, and thrive academically with our AI-powered well-being platform designed for students.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Get Started</a>
+                        <a href="#" class="px-6 py-3 border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-50">Learn More</a>
+                    </div>
+                </div>
+                <div class="md:w-1/2">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7f9886a8-865c-4db1-ae25-36269fb809d5.png" alt="Happy diverse group of university students studying together in a bright campus environment" class="rounded-lg shadow-xl">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white" id="Features">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Comprehensive Well-being Support</h2>
+            <p class="text-lg text-center text-gray-600 mb-12 max-w-2xl mx-auto">Our platform offers a range of tools and resources to support your mental health journey throughout your academic career.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Mental Health Tracking</h3>
+                    <p class="text-gray-600">Regular mood tracking and personalized insights to help you understand your emotional patterns.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">AI Chat Support</h3>
+                    <p class="text-gray-600">24/7 confidential support from our AI assistant, always ready to listen and help.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Peer Support Network</h3>
+                    <p class="text-gray-600">Connect anonymously with fellow students who understand what you're going through.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Clinical Assessments</h3>
+                    <p class="text-gray-600">Standardized PHQ-9 and GAD-7 screenings to help identify depression and anxiety symptoms.</p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Gamification</h3>
+                    <p class="text-gray-600">Earn rewards and badges for practicing self-care and engaging with well-being activities.</p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Smart Campus</h3>
+                    <p class="text-gray-600">Personalized support during high-stress periods like exams based on your academic calendar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">How It Works</h2>
+            <p class="text-lg text-center text-gray-600 mb-12 max-w-2xl mx-auto">Simple steps to better well-being tailored for student life.</p>
+            
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-8 md:space-y-0 md:space-x-12">
+                <div class="flex flex-col items-center text-center max-w-xs">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-indigo-600 font-bold text-xl">1</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Sign Up</h3>
+                    <p class="text-gray-600">Create your personalized account in just a few minutes.</p>
+                </div>
+                
+                <div class="flex flex-col items-center text-center max-w-xs">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-indigo-600 font-bold text-xl">2</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Complete Initial Assessment</h3>
+                    <p class="text-gray-600">Answer a few questions to help us understand your needs.</p>
+                </div>
+                
+                <div class="flex flex-col items-center text-center max-w-xs">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-indigo-600 font-bold text-xl">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Start Tracking</h3>
+                    <p class="text-gray-600">Begin your well-being journey with daily check-ins and tools.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">What Students Say</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/3bd9929c-caf7-4f14-bd17-0a48b858070e.png" alt="Portrait of a smiling Asian female student with glasses" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-semibold">Sarah L.</h4>
+                            <p class="text-sm text-gray-500">Computer Science, Junior</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">"The AI chatbot helped me through some really tough times during finals week when I felt too overwhelmed to talk to anyone."</p>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/228cdac0-d0c2-45ee-ac52-0dec8398fa13.png" alt="Portrait of a Black male student with short hair smiling confidently" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-semibold">Marcus T.</h4>
+                            <p class="text-sm text-gray-500">Engineering, Sophomore</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">"The PHQ-9 assessment made me realize I needed help. I reached out to counseling services and it made all the difference."</p>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/8c77eae9-95b3-44ea-8194-cbc4b03534a4.png" alt="Portrait of a white female student with curly hair laughing" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-semibold">Emily R.</h4>
+                            <p class="text-sm text-gray-500">Psychology, Senior</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">"The peer support groups helped me feel less alone. It's comforting to know others are going through similar challenges."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold mb-6">Ready to prioritize your <span class="text-blue-200">well-being</span>?</h2>
+            <p class="text-xl mb-10 max-w-2xl mx-auto leading-relaxed">Join over 50,000 students who are taking control of their mental health journey.</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="signup.html" class="px-8 py-3 bg-white text-indigo-600 rounded-md font-semibold hover:bg-gray-100">Sign Up Free</a>
+                <a href="#" class="px-8 py-3 border border-white text-white rounded-md font-semibold hover:bg-indigo-700">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="mb-4">
+                        <span class="text-lg font-semibold">WellTrack</span>
+                    </div>
+                    <p class="text-gray-400">Supporting student well-being through technology and community.</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Features</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Resources</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Mental Health Tips</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Campus Counseling</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Emergency Contacts</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Self-Care Guide</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-4">Contact</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">support@welltrack.edu</li>
+                        <li class="text-gray-400">(555) 123-4567</li>
+                        <li class="text-gray-400">123 Wellness Ave, Campus Town</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2023 WellTrack. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chatbot -->
+    <div class="chatbot-container">
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <span>Well-being Assistant</span>
+                <button id="closeChatbot" class="text-white">×</button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    Hello! I'm your Well-being Assistant. How can I help you today?
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="userInput" placeholder="Type your message..." class="flex-grow">
+                <button id="sendMessage">Send</button>
+            </div>
+        </div>
+        <div class="chatbot-icon" id="chatbotIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+        </div>
+    </div>
+
+    <script src="chatbot.js"></script>
+</body>
+</html>

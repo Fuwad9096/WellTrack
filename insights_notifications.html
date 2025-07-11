@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insights & Notifications - WellTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Reusing styles from mental_health_tracking.html for consistency */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light, #f8fafc); /* Default light background */
+            color: var(--dark, #1e293b); /* Default dark text */
+        }
+        /* Define theme variables if not in style.css */
+        :root {
+            --primary: #4F46E5; /* Indigo-600 */
+            --light: #F8FAFC; /* Slate-50 */
+            --dark: #1E293B; /* Slate-900 */
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--dark);
+        }
+        .sidebar-item:hover:not(.active-sidebar-item) {
+            background-color: rgba(79, 70, 229, 0.05);
+            transform: translateY(-1px);
+        }
+        .sidebar-item svg {
+            margin-right: 0.5rem;
+            color: var(--dark);
+        }
+        .sidebar-item span {
+            font-weight: 500;
+        }
+        .active-sidebar-item {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .active-sidebar-item svg {
+            color: white;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #4F46E5, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .message-box {
+            background-color: #fef2f2; /* Red-100 */
+            color: #ef4444; /* Red-500 */
+            border: 1px solid #fca5a5; /* Red-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem; /* Smaller font for messages */
+        }
+        .message-box.active {
+            display: block; /* Show when active */
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green-100 */
+            border-color: #6ee7b7; /* Green-300 */
+            color: #10b981; /* Green-600 */
+        }
+        .message-box.info {
+            background-color: #e0f2fe; /* Light blue */
+            border-color: #93c5fd; /* Medium blue */
+            color: #2563eb; /* Dark blue */
+        }
+        .message-box.warning { /* Added for warning type */
+            background-color: #fffbeb; /* Yellow-100 */
+            border-color: #fcd34d; /* Yellow-300 */
+            color: #d97706; /* Yellow-700 */
+        }
+        .message-box.alert { /* Added for alert type (more severe) */
+            background-color: #fee2e2; /* Red-100 */
+            border-color: #fca5a5; /* Red-300 */
+            color: #dc2626; /* Red-600 */
+        }
+
+        /* Specific styles for insights and notifications */
+        .insight-card {
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background-color: #f0f4ff; /* Lighter primary tint */
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .insight-card p {
+            color: #4B5563; /* Gray-600 */
+        }
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border-bottom: 1px solid #E5E7EB; /* Gray-200 */
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-icon {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+        .notification-content h4 {
+            font-weight: 600;
+            color: #374151; /* Gray-700 */
+        }
+        .notification-content p {
+            font-size: 0.875rem;
+            color: #6B7280; /* Gray-500 */
+        }
+        #moodStressChart, #gpaChart {
+            max-height: 400px; /* Limit chart height */
+            width: 100%; /* Ensure responsiveness */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-poppins">
+    <nav class="bg-white border-b border-gray-100 py-5 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold text-gradient">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logoutButton" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="py-10">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-64 card">
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="mental_health_tracking.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Mental Health Tracking</span>
+                        </a>
+                        <a href="insights_notifications.html" class="sidebar-item active-sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17l-1.406-1.406A4.002 4.002 0 0112 13a4 4 0 012.594-3.594L15 8m0 0l-2-2m2 2l2 2M10 4h.01M16 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Insights and Notifications</span>
+                        </a>
+                        <a href="peer_support.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Peer Support</span>
+                        </a>
+                        <a href="assessments.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Assessments</span>
+                        </a>
+                      
+                        <a href="professional_help.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.202 5 7.5 5A4.5 4.5 0 003 9.5v12.5C3 23.328 4.172 24 5 24h14c.828 0 2-0.672 2-2.5V9.5A4.5 4.5 0 0016.5 5c-1.702 0-3.332.477-4.5 1.253z"/>
+                            </svg>
+                            <span>Professional Help</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex-1">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Academic & Emotional Insights</h2>
+                        <p class="text-gray-700 mb-8">
+                            Discover patterns in your mood, academic stress, and GPA data to understand how they influence each other and receive timely notifications to support your well-being journey.
+                        </p>
+
+                        <div id="insights-message" class="message-box"></div>
+
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Mood and Academic Stress Trends</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                                <canvas id="moodStressChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">GPA Trend Over Time</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                                <canvas id="gpaChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Personalized Insights</h3>
+                            <div id="insights-list" class="space-y-4">
+                                <p class="text-gray-600">Loading insights...</p>
+                            </div>
+                            <button id="refreshInsightsBtn" class="btn-primary mt-6">Refresh Insights</button>
+                        </div>
+
+                        ---
+
+                        <div class="mt-8">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Notifications (Real-time)</h3>
+                            <div id="notifications-list" class="card p-0">
+                                <p class="text-gray-600 p-4">Awaiting real-time notifications...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 WellTrack. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            const insightsMessage = document.getElementById('insights-message');
+            const insightsList = document.getElementById('insights-list');
+            const notificationsList = document.getElementById('notifications-list');
+            const refreshInsightsBtn = document.getElementById('refreshInsightsBtn');
+            let moodStressChartCanvas = document.getElementById('moodStressChart');
+            let gpaChartCanvas = document.getElementById('gpaChart'); // New GPA chart canvas
+            
+            let moodStressChartInstance = null; // To hold the Chart.js instance for mood/stress
+            let gpaChartInstance = null; // To hold the Chart.js instance for GPA
+
+            // Initialize Socket.IO connection
+            // The URL is correct for local development. Ensure your Flask app runs on 127.0.0.1:5000
+            const socket = io('http://127.0.0.1:5000'); 
+
+            function displayMessage(element, message, type) {
+                element.textContent = message;
+                element.className = `message-box active ${type}`;
+                // Optionally hide message after some time
+                setTimeout(() => {
+                    element.classList.remove('active');
+                }, 5000);
+            }
+
+            // Function to load insights and render charts
+            async function loadInsightsAndCharts() {
+                // Always clear message box before starting
+                insightsMessage.className = 'message-box';
+                insightsMessage.textContent = '';
+                insightsList.innerHTML = '<p class="text-gray-600">Generating insights...</p>'; // Clear existing insights
+                refreshInsightsBtn.disabled = true;
+                refreshInsightsBtn.textContent = 'Loading...';
+
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    displayMessage(insightsMessage, 'Error: User not logged in. Please log in again.', 'error');
+                    refreshInsightsBtn.disabled = false;
+                    refreshInsightsBtn.textContent = 'Refresh Insights';
+                    return;
+                }
+
+                try {
+                    // Fetch combined mood, stress, and GPA data from Flask
+                    const response = await fetch(`http://127.0.0.1:5000/insights_notifications?user_email=${userEmail}`);
+                    let data = null;
+                    let isJson = false;
+                    try {
+                        data = await response.json();
+                        isJson = true;
+                    } catch (jsonErr) {
+                        // Not JSON, try to get text for error reporting
+                        data = await response.text();
+                    }
+                    // Debug log
+                    console.log('Raw fetch response:', response);
+                    console.log('Parsed data:', data);
+
+                    if (!response.ok) {
+                        // If backend returned error, show backend error if possible
+                        let msg = `Server returned ${response.status}: ${response.statusText}`;
+                        if (isJson && data && data.message) msg = data.message;
+                        else if (!isJson && typeof data === 'string' && data.length < 200) msg = data;
+                        displayMessage(insightsMessage, msg, 'error');
+                        insightsList.innerHTML = '<p class="text-gray-600">Failed to load insights data.</p>';
+                        notificationsList.innerHTML = '<p class="text-gray-600 p-4">Failed to load notifications.</p>';
+                        return;
+                    }
+
+                    if (isJson && data && data.success && data.data) {
+                        // Extract and transform backend data for charting
+                        const mood_history = data.data.mood_history || [];
+                        const stress_history = data.data.stress_history || [];
+                        const gpa_history = data.data.gpa_history || [];
+
+                        // Build a unified date list (union of all dates in mood, stress, gpa)
+                        const dateSet = new Set();
+                        mood_history.forEach(e => dateSet.add(e.timestamp.split('T')[0]));
+                        stress_history.forEach(e => dateSet.add(e.stress_date.split('T')[0]));
+                        gpa_history.forEach(e => dateSet.add(e.gpa_date.split('T')[0]));
+                        const dates = Array.from(dateSet).sort();
+
+                        // Map date to mood, stress, gpa
+                        const moodMap = {};
+                        mood_history.forEach(e => { moodMap[e.timestamp.split('T')[0]] = e.mood_score; });
+                        const stressMap = {};
+                        stress_history.forEach(e => { stressMap[e.stress_date.split('T')[0]] = e.stress_level; });
+                        const gpaMap = {};
+                        gpa_history.forEach(e => { gpaMap[e.gpa_date.split('T')[0]] = e.gpa; });
+
+                        // Build arrays for charting
+                        const mood_scores = dates.map(d => moodMap[d] !== undefined ? moodMap[d] : null);
+                        const stress_levels = dates.map(d => stressMap[d] !== undefined ? stressMap[d] : null);
+                        const gpa_scores = dates.map(d => gpaMap[d] !== undefined ? gpaMap[d] : null);
+                        const notifications = [];
+                        // Optionally, you can push latest_mood, latest_stress, latest_gpa as notifications
+                        // ...existing code for charting and insights...
+
+                        // --- Render Mood and Stress Chart ---
+                        const moodScaleLabels = {
+                            1: 'Very Bad', 2: 'Bad', 3: 'Neutral', 4: 'Good', 5: 'Great'
+                        };
+                        if (moodStressChartInstance) {
+                            moodStressChartInstance.destroy();
+                        }
+                        // Remove the canvas and re-add it to fully reset Chart.js state
+                        const newMoodCanvas = moodStressChartCanvas.cloneNode(true);
+                        moodStressChartCanvas.parentNode.replaceChild(newMoodCanvas, moodStressChartCanvas);
+                        // Use requestAnimationFrame to ensure DOM update before creating chart
+                        requestAnimationFrame(() => {
+                            moodStressChartInstance = new Chart(newMoodCanvas, {
+                                type: 'line',
+                                data: {
+                                    labels: dates,
+                                    datasets: [
+                                        {
+                                            label: 'Mood Score (1-5)',
+                                            data: mood_scores,
+                                            borderColor: 'rgb(79, 70, 229)',
+                                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                                            tension: 0.3,
+                                            fill: false,
+                                            yAxisID: 'y'
+                                        },
+                                        {
+                                            label: 'Academic Stress Level (1-5)',
+                                            data: stress_levels,
+                                            borderColor: 'rgb(234, 179, 8)',
+                                            backgroundColor: 'rgba(234, 179, 8, 0.2)',
+                                            tension: 0.3,
+                                            fill: false,
+                                            yAxisID: 'y1'
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        title: {
+                                            display: true,
+                                            text: 'Your Mood and Academic Stress Trends',
+                                            font: { size: 16, weight: 'bold' }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    let label = context.dataset.label || '';
+                                                    if (label) label += ': ';
+                                                    if (context.dataset.label.includes('Mood Score')) {
+                                                        return label + (context.raw !== null ? moodScaleLabels[context.raw] : 'No Data');
+                                                    }
+                                                    return label + (context.raw !== null ? context.raw : 'No Data');
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            title: { display: true, text: 'Date' }
+                                        },
+                                        y: {
+                                            type: 'linear', position: 'left',
+                                            title: { display: true, text: 'Mood Score' },
+                                            min: 1, max: 5, stepSize: 1,
+                                            ticks: {
+                                                callback: function(value) { return moodScaleLabels[value]; }
+                                            }
+                                        },
+                                        y1: {
+                                            type: 'linear', position: 'right',
+                                            title: { display: true, text: 'Stress Level' },
+                                            min: 1, max: 5, stepSize: 1,
+                                            grid: { drawOnChartArea: false }
+                                        }
+                                    }
+                                }
+                            });
+                            moodStressChartCanvas = newMoodCanvas;
+                        });
+
+                        // --- Render GPA Chart ---
+                        // Prepare filtered GPA data and labels for charting
+                        const filteredGpaScores = [];
+                        const gpaLabels = [];
+                        for (let i = 0; i < gpa_scores.length; i++) {
+                            if (gpa_scores[i] !== null && !isNaN(gpa_scores[i])) {
+                                filteredGpaScores.push(Number(gpa_scores[i]));
+                                gpaLabels.push(dates[i]);
+                            }
+                        }
+                        if (gpaChartInstance) {
+                            gpaChartInstance.destroy();
+                        }
+                        const newGpaCanvas = gpaChartCanvas.cloneNode(true);
+                        gpaChartCanvas.parentNode.replaceChild(newGpaCanvas, gpaChartCanvas);
+                        requestAnimationFrame(() => {
+                            if (filteredGpaScores.length > 0) {
+                                newGpaCanvas.style.display = 'block';
+                                gpaChartInstance = new Chart(newGpaCanvas, {
+                                    type: 'line',
+                                    data: {
+                                        labels: gpaLabels,
+                                        datasets: [
+                                            {
+                                                label: 'GPA',
+                                                data: filteredGpaScores,
+                                                borderColor: 'rgb(20, 184, 166)',
+                                                backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                                                tension: 0.3,
+                                                fill: false,
+                                                yAxisID: 'gpa-y-axis'
+                                            }
+                                        ]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            title: {
+                                                display: true,
+                                                text: 'Your GPA Trend',
+                                                font: { size: 16, weight: 'bold' }
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                title: { display: true, text: 'Date' }
+                                            },
+                                            'gpa-y-axis': {
+                                                type: 'linear',
+                                                position: 'left',
+                                                title: { display: true, text: 'GPA' },
+                                                min: 0,
+                                                max: 5,
+                                                ticks: {
+                                                    stepSize: 0.5
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            // Crucial fix: Update the gpaChartCanvas variable to point to the new canvas
+                            gpaChartCanvas = newGpaCanvas;
+                        });
+
+                        // Generate insights based on the data
+                        let insightsHtml = '';
+                        if (mood_history.length > 0) {
+                            const latestMood = mood_history[mood_history.length - 1];
+                            insightsHtml += `
+                                <div class="insight-card">
+                                    <h4 class="font-semibold text-gray-800">Latest Mood: ${moodScaleLabels[latestMood.mood_score]}</h4>
+                                    <p>Recorded on: ${new Date(latestMood.timestamp).toLocaleDateString()}</p>
+                                </div>
+                            `;
+                        }
+                        if (stress_history.length > 0) {
+                            const latestStress = stress_history[stress_history.length - 1];
+                            insightsHtml += `
+                                <div class="insight-card">
+                                    <h4 class="font-semibold text-gray-800">Latest Academic Stress: Level ${latestStress.stress_level}</h4>
+                                    <p>Recorded on: ${new Date(latestStress.stress_date).toLocaleDateString()}</p>
+                                </div>
+                            `;
+                        }
+                        if (gpa_history.length > 0) {
+                            const latestGpa = gpa_history[gpa_history.length - 1];
+                            let gpaValue = latestGpa.gpa;
+                            let gpaDisplay = 'N/A';
+                            if (typeof gpaValue === 'number' && !isNaN(gpaValue)) {
+                                gpaDisplay = gpaValue.toFixed(2);
+                            } else if (!isNaN(parseFloat(gpaValue))) {
+                                gpaDisplay = parseFloat(gpaValue).toFixed(2);
+                            }
+                            insightsHtml += `
+                                <div class="insight-card">
+                                    <h4 class="font-semibold text-gray-800">Latest GPA: ${gpaDisplay}</h4>
+                                    <p>Recorded on: ${latestGpa.gpa_date ? new Date(latestGpa.gpa_date).toLocaleDateString() : 'N/A'}</p>
+                                </div>
+                            `;
+                        }
+
+                        if (insightsHtml === '') {
+                            insightsList.innerHTML = '<p class="text-gray-600">No insights available yet. Log some data to see personalized insights!</p>';
+                        } else {
+                            insightsList.innerHTML = insightsHtml;
+                        }
+
+                        // Display notifications (example - you'd fetch real notifications from backend)
+                        notificationsList.innerHTML = ''; // Clear previous notifications
+                        if (data.data.notifications && data.data.notifications.length > 0) {
+                            data.data.notifications.forEach(notification => {
+                                const notificationDiv = document.createElement('div');
+                                notificationDiv.className = 'notification-item';
+                                notificationDiv.innerHTML = `
+                                    <svg class="notification-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${notification.iconPath || 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}"/>
+                                    </svg>
+                                    <div class="notification-content">
+                                        <h4>${notification.title}</h4>
+                                        <p>${notification.message}</p>
+                                        <p class="text-xs text-gray-400">${new Date(notification.timestamp).toLocaleString()}</p>
+                                    </div>
+                                `;
+                                notificationsList.appendChild(notificationDiv);
+                            });
+                        } else {
+                            notificationsList.innerHTML = '<p class="text-gray-600 p-4">No new notifications.</p>';
+                        }
+
+                        displayMessage(insightsMessage, 'Insights and charts loaded successfully!', 'success');
+
+                    } else if (isJson && data && data.message) {
+                        displayMessage(insightsMessage, `Error: ${data.message}`, 'error');
+                        insightsList.innerHTML = '<p class="text-gray-600">Failed to load insights data.</p>';
+                        notificationsList.innerHTML = '<p class="text-gray-600 p-4">Failed to load notifications.</p>';
+                    } else {
+                        displayMessage(insightsMessage, 'An unknown error occurred while fetching data.', 'error');
+                        insightsList.innerHTML = '<p class="text-gray-600">Failed to load insights data.</p>';
+                        notificationsList.innerHTML = '<p class="text-gray-600 p-4">Failed to load notifications.</p>';
+                    }
+
+                } catch (error) {
+                    console.error('Error loading insights and charts:', error);
+                    displayMessage(insightsMessage, `Failed to fetch data: ${error.message}. Please ensure the backend server is running.`, 'error');
+                    insightsList.innerHTML = '<p class="text-gray-600">Failed to load insights data due to a network error.</p>';
+                    notificationsList.innerHTML = '<p class="text-gray-600 p-4">Failed to load notifications due to a network error.</p>';
+                } finally {
+                    refreshInsightsBtn.disabled = false;
+                    refreshInsightsBtn.textContent = 'Refresh Insights';
+                }
+            }
+
+            // Initial load of insights and charts
+            loadInsightsAndCharts();
+
+            // Event listener for refresh button
+            refreshInsightsBtn.addEventListener('click', loadInsightsAndCharts);
+
+            // Logout functionality
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('user_email');
+                window.location.href = 'index.html'; // Redirect to login/home page
+            });
+
+            // Handle real-time notifications from Socket.IO
+            socket.on('new_notification', function(notification) {
+                console.log('Received real-time notification:', notification);
+                const notificationDiv = document.createElement('div');
+                notificationDiv.className = 'notification-item';
+                notificationDiv.innerHTML = `
+                    <svg class="notification-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${notification.iconPath || 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}"/>
+                    </svg>
+                    <div class="notification-content">
+                        <h4>${notification.title}</h4>
+                        <p>${notification.message}</p>
+                        <p class="text-xs text-gray-400">${new Date(notification.timestamp).toLocaleString()}</p>
+                    </div>
+                `;
+                // Add new notification to the top of the list
+                if (notificationsList.querySelector('p.text-gray-600.p-4')) {
+                    notificationsList.innerHTML = ''; // Clear "No new notifications" message
+                }
+                notificationsList.prepend(notificationDiv);
+                displayMessage(insightsMessage, `New notification: ${notification.title}`, 'info');
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('Socket.IO connection error:', error);
+                displayMessage(insightsMessage, 'Failed to connect to real-time notification server. Notifications may not be live.', 'warning');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Tracking - WellTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Reusing styles from mental_health_tracking.html for consistency */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light, #f8fafc); /* Default light background */
+            color: var(--dark, #1e293b); /* Default dark text */
+        }
+        /* Define theme variables if not in style.css */
+        :root {
+            --primary: #4F46E5; /* Indigo-600 */
+            --light: #F8FAFC; /* Slate-50 */
+            --dark: #1E293B; /* Slate-900 */
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--dark);
+        }
+        .sidebar-item:hover:not(.active-sidebar-item) {
+            background-color: rgba(79, 70, 229, 0.05);
+            transform: translateY(-1px);
+        }
+        .sidebar-item svg {
+            margin-right: 0.5rem;
+            color: var(--dark);
+        }
+        .sidebar-item span {
+            font-weight: 500;
+        }
+        .active-sidebar-item {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .active-sidebar-item svg {
+            color: white;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #4F46E5, #3B82F6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .message-box {
+            background-color: #fef2f2; /* Red-100 */
+            color: #ef4444; /* Red-500 */
+            border: 1px solid #fca5a5; /* Red-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem; /* Smaller font for messages */
+        }
+        .message-box.active {
+            display: block; /* Show when active */
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green-100 */
+            border-color: #6ee7b7; /* Green-300 */
+            color: #10b981; /* Green-600 */
+        }
+        .message-box.info {
+            background-color: #e0f2fe; /* Light blue */
+            border-color: #93c5fd; /* Medium blue */
+            color: #2563eb; /* Dark blue */
+        }
+        .message-box.warning {
+            background-color: #fffbeb; /* Yellow-100 */
+            border-color: #fcd34d; /* Yellow-300 */
+            color: #d97706; /* Yellow-700 */
+        }
+        .message-box.alert {
+            background-color: #fee2e2; /* Red-100 */
+            border-color: #fca5a5; /* Red-300 */
+            color: #dc2626; /* Red-600 */
+        }
+        /* Style for mood score buttons */
+        .mood-selector button {
+            padding: 0.5rem 1rem; /* py-2 px-4 */
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+            border-width: 2px; /* border-2 */
+            border-color: transparent; /* border-transparent */
+            transition-property: background-color, border-color, transform, box-shadow; /* transition-all */
+            transition-duration: 200ms; /* duration-200 */
+            transition-timing-function: ease-in-out; /* ease-in-out */
+            flex: 1; /* flex-1 */
+            margin-left: 0.25rem; /* mx-1 (part of) */
+            margin-right: 0.25rem; /* mx-1 (part of) */
+        }
+        .mood-selector button.selected {
+            border-color: #6366f1; /* border-indigo-500 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+            transform: scale(1.05); /* scale-105 */
+        }
+        /* Hide default number input arrows */
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield;
+            appearance: textfield; /* Standard property for compatibility */
+        }
+        /* Remove unused Modern Mental Health Tracking and calendar styles */
+    </style>
+</head>
+<body class="bg-gray-50 font-poppins min-h-screen flex flex-col">
+    <nav class="bg-white border-b border-gray-100 py-5 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center">
+                <span class="text-2xl font-bold text-gradient">WellTrack</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Features</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">Resources</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">About</a>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logoutButton" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="py-10 flex-grow">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-64 card">
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="mental_health_tracking.html" class="sidebar-item active-sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Mental Health Tracking</span>
+                        </a>
+                        <a href="insights_notifications.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17l-1.406-1.406A4.002 4.002 0 0112 13a4 4 0 012.594-3.594L15 8m0 0l-2-2m2 2l2 2M10 4h.01M16 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Insights and Notifications</span>
+                        </a>
+                        <a href="peer_support.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM7 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Peer Support</span>
+                        </a>
+                        <a href="assessments.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Assessments</span>
+                        </a>
+                        
+                        <a href="professional_help.html" class="sidebar-item">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.202 5 7.5 5A4.5 4.5 0 003 9.5v12.5C3 23.328 4.172 24 5 24h14c.828 0 2-0.672 2-2.5V9.5A4.5 4.5 0 0016.5 5c-1.702 0-3.332.477-4.5 1.253z"/>
+                            </svg>
+                            <span>Professional Help</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex-1">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Mental Health Tracking</h2>
+                        <p class="text-gray-700 mb-8">
+                            Track your mood, academic stress, and GPA over time to understand your well-being journey.
+                        </p>
+
+                        <!-- Message Box for general feedback -->
+                        <div id="general-message" class="message-box"></div>
+
+                        <!-- Mood Logging Section -->
+                        <div class="mb-8 p-6 border border-gray-200 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Log Your Daily Mood</h3>
+                            <div id="mood-log-message" class="message-box mb-4"></div>
+                            <form id="moodLogForm" class="space-y-4">
+                                <div>
+                                    <label for="mood-date" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                    <input type="date" id="mood-date" name="mood-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Mood Score (1=Very Bad, 5=Great)</label>
+                                    <div class="mood-selector flex justify-around items-center space-x-2">
+                                        <button type="button" data-score="1" class="bg-red-500 text-white hover:bg-red-600 transition">Very Bad</button>
+                                        <button type="button" data-score="2" class="bg-orange-400 text-white hover:bg-orange-500 transition">Bad</button>
+                                        <button type="button" data-score="3" class="bg-yellow-400 text-white hover:bg-yellow-500 transition">Neutral</button>
+                                        <button type="button" data-score="4" class="bg-green-400 text-white hover:bg-green-500 transition">Good</button>
+                                        <button type="button" data-score="5" class="bg-blue-500 text-white hover:bg-blue-600 transition">Great</button>
+                                    </div>
+                                    <input type="hidden" id="mood-score" name="mood-score" required>
+                                </div>
+                                <div>
+                                    <label for="mood-notes" class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                                    <textarea id="mood-notes" name="mood-notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="E.g., Had a great day, feeling stressed about exams..."></textarea>
+                                </div>
+                                <button type="submit" id="logMoodBtn" class="btn-primary w-full">Log Mood Entry</button>
+                            </form>
+                        </div>
+
+                        <!-- Academic Stress Logging Section (RESTORED) -->
+                        <div class="mb-8 p-6 border border-gray-200 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Log Your Academic Stress</h3>
+                            <div id="academic-stress-message" class="message-box mb-4"></div>
+                            <form id="academicStressLogForm" class="space-y-4">
+                                <div>
+                                    <label for="stress-date" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                    <input type="date" id="stress-date" name="stress-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label for="stress-level" class="block text-sm font-medium text-gray-700 mb-2">Academic Stress Level (1=Low, 5=Very High)</label>
+                                    <input type="number" id="stress-level" name="stress-level" min="1" max="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter 1-5" required>
+                                </div>
+                                <button type="submit" id="logAcademicStressBtn" class="btn-primary w-full">Log Academic Stress</button>
+                            </form>
+                        </div>
+
+                        <!-- GPA Logging Section (RESTORED) -->
+                        <div class="mb-8 p-6 border border-gray-200 rounded-lg shadow-sm">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Log Your GPA</h3>
+                            <div id="gpa-message" class="message-box mb-4"></div>
+                            <form id="gpaLogForm" class="space-y-4">
+                                <div>
+                                    <label for="gpa-score" class="block text-sm font-medium text-gray-700 mb-2">GPA (e.g., 3.75)</label>
+                                    <input type="number" step="0.01" id="gpa-score" name="gpa-score" min="0.00" max="5.00" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter GPA" required>
+                                </div>
+                                <div>
+                                    <label for="gpa-period" class="block text-sm font-medium text-gray-700 mb-2">Academic Period (Optional)</label>
+                                    <input type="text" id="gpa-period" name="gpa-period" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="E.g., Fall 2023, Semester 1">
+                                </div>
+                                <div>
+                                    <label for="gpa-date" class="block text-sm font-medium text-gray-700 mb-2">Date Recorded</label>
+                                    <input type="date" id="gpa-date" name="gpa-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <button type="submit" id="logGPABtn" class="btn-primary w-full">Log GPA</button>
+                            </form>
+                        </div>
+
+                        <!-- Mood History Display Section -->
+                        
+                        
+                        <div id="mh-latest-entry" style="margin-top:1em;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 WellTrack. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            const generalMessage = document.getElementById('general-message');
+            
+            // Mood Logging Elements
+            const moodLogForm = document.getElementById('moodLogForm');
+            const moodScoreInput = document.getElementById('mood-score');
+            const moodDateInput = document.getElementById('mood-date');
+            const moodNotesInput = document.getElementById('mood-notes');
+            const moodLogMessage = document.getElementById('mood-log-message');
+            const moodSelectorButtons = document.querySelectorAll('.mood-selector button');
+            const logMoodBtn = document.getElementById('logMoodBtn');
+
+            // Academic Stress Logging Elements (RESTORED)
+            const academicStressLogForm = document.getElementById('academicStressLogForm');
+            const stressLevelInput = document.getElementById('stress-level');
+            const stressDateInput = document.getElementById('stress-date');
+            const academicStressMessage = document.getElementById('academic-stress-message');
+            const logAcademicStressBtn = document.getElementById('logAcademicStressBtn');
+
+            // GPA Logging Elements (RESTORED)
+            const gpaLogForm = document.getElementById('gpaLogForm');
+            const gpaScoreInput = document.getElementById('gpa-score');
+            const gpaPeriodInput = document.getElementById('gpa-period');
+            const gpaDateInput = document.getElementById('gpa-date');
+            const gpaMessage = document.getElementById('gpa-message');
+            const logGPABtn = document.getElementById('logGPABtn');
+
+            // Set current date for mood log by default
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            moodDateInput.value = `${year}-${month}-${day}`;
+            stressDateInput.value = `${year}-${month}-${day}`; // Set for academic stress too
+            gpaDateInput.value = `${year}-${month}-${day}`; // Set for GPA too
+
+            function displayMessage(element, message, type) {
+                element.textContent = message;
+                element.className = `message-box active ${type}`;
+                setTimeout(() => {
+                    element.classList.remove('active');
+                }, 5000);
+            }
+
+            // Mood score selection logic
+            moodSelectorButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    moodSelectorButtons.forEach(btn => btn.classList.remove('selected'));
+                    this.classList.add('selected');
+                    moodScoreInput.value = this.dataset.score;
+                });
+            });
+
+            // Handle Mood Log Form Submission
+            moodLogForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                moodLogMessage.classList.remove('active', 'success', 'error', 'info', 'warning', 'alert');
+
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    displayMessage(moodLogMessage, 'Error: User not logged in. Please log in again.', 'error');
+                    return;
+                }
+
+                const moodScore = moodScoreInput.value;
+                const moodDate = moodDateInput.value;
+                const moodNotes = moodNotesInput.value;
+
+                if (!moodScore) {
+                    displayMessage(moodLogMessage, 'Please select a mood score.', 'warning');
+                    return;
+                }
+
+                logMoodBtn.disabled = true;
+                logMoodBtn.textContent = 'Logging...';
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/mood_log', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_email: userEmail,
+                            mood_score: parseInt(moodScore),
+                            mood_date: moodDate,
+                            mood_notes: moodNotes
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        displayMessage(moodLogMessage, result.message, 'success');
+                        moodNotesInput.value = '';
+                        moodScoreInput.value = ''; // Clear hidden score
+                        moodSelectorButtons.forEach(btn => btn.classList.remove('selected')); // Deselect buttons
+                        // moodDateInput.value = `${year}-${month}-${day}`; // Do NOT reset date to today
+                        loadMoodHistory(); // Refresh mood history
+                    } else {
+                        displayMessage(moodLogMessage, result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error logging mood entry:', error);
+                    displayMessage(moodLogMessage, 'Network error. Could not connect to the server.', 'error');
+                } finally {
+                    logMoodBtn.disabled = false;
+                    logMoodBtn.textContent = 'Log Mood Entry';
+                }
+            });
+
+            // Handle Academic Stress Log Form Submission (RESTORED)
+            academicStressLogForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                academicStressMessage.classList.remove('active', 'success', 'error', 'info', 'warning', 'alert');
+
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    displayMessage(academicStressMessage, 'Error: User not logged in. Please log in again.', 'error');
+                    return;
+                }
+
+                const stressLevel = stressLevelInput.value;
+                const stressDate = stressDateInput.value;
+
+                if (!stressLevel || stressLevel < 1 || stressLevel > 5) {
+                    displayMessage(academicStressMessage, 'Please enter a valid stress level (1-5).', 'warning');
+                    return;
+                }
+
+                logAcademicStressBtn.disabled = true;
+                logAcademicStressBtn.textContent = 'Logging...';
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/log_academic_stress', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_email: userEmail,
+                            stress_level: parseInt(stressLevel),
+                            stress_date: stressDate
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        displayMessage(academicStressMessage, result.message, 'success');
+                        stressLevelInput.value = ''; // Clear input
+                        stressDateInput.value = `${year}-${month}-${day}`; // Reset date
+                    } else {
+                        displayMessage(academicStressMessage, result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error logging academic stress:', error);
+                    displayMessage(academicStressMessage, 'Network error. Could not connect to the server.', 'error');
+                } finally {
+                    logAcademicStressBtn.disabled = false;
+                    logAcademicStressBtn.textContent = 'Log Academic Stress';
+                }
+            });
+
+            // Handle GPA Log Form Submission (RESTORED)
+            gpaLogForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                gpaMessage.classList.remove('active', 'success', 'error', 'info', 'warning', 'alert');
+
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    displayMessage(gpaMessage, 'Error: User not logged in. Please log in again.', 'error');
+                    return;
+                }
+
+                const gpaScore = gpaScoreInput.value;
+                const gpaPeriod = gpaPeriodInput.value;
+                const gpaDate = gpaDateInput.value;
+
+                if (!gpaScore || isNaN(parseFloat(gpaScore)) || parseFloat(gpaScore) < 0 || parseFloat(gpaScore) > 5) {
+                    displayMessage(gpaMessage, 'Please enter a valid GPA (e.g., 3.75, max 5.0).', 'warning');
+                    return;
+                }
+
+                logGPABtn.disabled = true;
+                logGPABtn.textContent = 'Logging...';
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/log_gpa', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_email: userEmail,
+                            gpa: parseFloat(gpaScore),
+                            academic_period: gpaPeriod,
+                            gpa_date: gpaDate
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        displayMessage(gpaMessage, result.message, 'success');
+                        gpaScoreInput.value = '';
+                        gpaPeriodInput.value = '';
+                        gpaDateInput.value = `${year}-${month}-${day}`;
+                    } else {
+                        displayMessage(gpaMessage, result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error logging GPA:', error);
+                    displayMessage(gpaMessage, 'Network error. Could not connect to the server.', 'error');
+                } finally {
+                    logGPABtn.disabled = false;
+                    logGPABtn.textContent = 'Log GPA';
+                }
+            });
+
+            const moodHistoryList = document.getElementById('mood-history-list');
+
+            // Function to load mood history
+            async function loadMoodHistory() {
+                moodHistoryList.innerHTML = '<p class="text-gray-600">Loading history...</p>';
+                const userEmail = localStorage.getItem('user_email');
+                if (!userEmail) {
+                    moodHistoryList.innerHTML = '<p class="text-red-500">Please log in to view your history.</p>';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/mood_history?user_email=${userEmail}`);
+                    const data = await response.json();
+
+                    if (data.success && data.history) {
+                        if (data.history.length === 0) {
+                            moodHistoryList.innerHTML = '<p class="text-gray-600">No mood entries found. Start logging your mood!</p>';
+                            return;
+                        }
+                        moodHistoryList.innerHTML = ''; // Clear placeholder
+
+                        // Updated mood map to use text instead of emojis
+                        const moodMap = {
+                            1: 'Very Bad',
+                            2: 'Bad',
+                            3: 'Neutral',
+                            4: 'Good',
+                            5: 'Great'
+                        };
+
+                        data.history.forEach(entry => {
+                            const entryDiv = document.createElement('div');
+                            entryDiv.className = 'p-3 bg-gray-100 rounded-md';
+                            entryDiv.innerHTML = `
+                                <p class="text-sm text-gray-500">${entry.timestamp}</p>
+                                <p class="font-medium text-gray-800">Mood: ${moodMap[entry.mood_score]}</p>
+                                ${entry.notes ? `<p class="text-gray-700 text-sm">Notes: ${entry.notes}</p>` : ''}
+                            `;
+                            moodHistoryList.appendChild(entryDiv);
+                        });
+                    } else {
+                        moodHistoryList.innerHTML = `<p class="text-red-500">Error loading mood history: ${data.message || 'Unknown error'}</p>`;
+                    }
+                } catch (error) {
+                    console.error('Error loading mood history:', error);
+                    moodHistoryList.innerHTML = '<p class="text-red-500">Network error. Could not load mood history.</p>';
+                }
+            }
+            
+            // Initial load of mood history
+            loadMoodHistory();
+
+            // Function to handle logout
+            logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('user_email'); 
+                window.location.href = 'index.html'; 
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Forum - WellTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 16px -2px rgba(0,0,0,0.08); padding: 1.5rem; }
+        .btn-primary { background: linear-gradient(90deg, #4F46E5 60%, #6366f1 100%); color: white; padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 600; border: none; transition: background 0.2s; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-secondary { border: 1.5px solid #4F46E5; color: #4F46E5; padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 600; background: #fff; }
+        .btn-secondary:hover { background: #f3f6fd; color: #4338ca; }
+        .form-input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; }
+        .form-input:focus { border-color: #4F46E5; outline: 0; }
+        .message-box { display: none; padding: 0.75rem 1rem; border-radius: 0.75rem; margin-bottom: 1rem; font-size: 1rem; }
+        .message-box.active { display: block; }
+        .message-box.error { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; }
+        .message-box.success { background: #d1fae5; color: #10b981; border: 1px solid #6ee7b7; }
+        .sidebar-item { display: flex; align-items: center; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: background 0.2s, color 0.2s; }
+        .sidebar-item:hover { background: #f3f4f6; }
+        .active-sidebar-item { background: #e0f2fe; color: #2563eb; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <aside class="w-full md:w-64 bg-white border-r border-gray-200 p-6 flex-shrink-0">
+            <div class="mb-8 flex items-center justify-between">
+                <span class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">WellTrack</span>
+                <button id="logout-btn" class="btn-secondary text-xs px-3 py-1 ml-2">Logout</button>
+            </div>
+            <div class="mb-4 text-sm text-gray-500" id="user-info"></div>
+            <nav class="space-y-2">
+                <a href="dashboard.html" class="sidebar-item flex items-center px-4 py-2 rounded-lg transition hover:bg-indigo-50 font-medium text-gray-700 hover:text-indigo-700">Dashboard</a>
+                <a href="mental_health_tracking.html" class="sidebar-item flex items-center px-4 py-2 rounded-lg transition hover:bg-indigo-50 font-medium text-gray-700 hover:text-indigo-700">Mental Health Tracking</a>
+                <a href="community_forum.html" class="sidebar-item flex items-center px-4 py-2 rounded-lg transition bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow font-semibold">Community Forum</a>
+                <a href="professional_help.html" class="sidebar-item flex items-center px-4 py-2 rounded-lg transition hover:bg-indigo-50 font-medium text-gray-700 hover:text-indigo-700">Professional Help</a>
+            </nav>
+        </aside>
+        <main class="flex-1 p-8">
+            <h2 class="text-4xl font-bold text-indigo-600 mb-8">Community Forum</h2>
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <div id="forum-message" class="message-box"></div>
+                <div id="forum-nav" class="mb-4 flex gap-2"></div>
+                <div id="forum-content"></div>
+            </div>
+        </main>
+    </div>
+    <script>
+    const API = 'http://127.0.0.1:5000';
+    const forumMessage = document.getElementById('forum-message');
+    const forumNav = document.getElementById('forum-nav');
+    const forumContent = document.getElementById('forum-content');
+    let currentCategory = null;
+    let currentTopic = null;
+    const currentUserEmail = localStorage.getItem('user_email');
+    const currentUserRole = localStorage.getItem('user_role') || 'student';
+    // Display user info
+    const userInfo = document.getElementById('user-info');
+    if (currentUserEmail) {
+        userInfo.textContent = `Logged in as: ${currentUserEmail} (${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})`;
+    } else {
+        userInfo.textContent = 'Not logged in';
+    }
+    // Logout button
+    document.getElementById('logout-btn').onclick = function() {
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_role');
+        window.location.href = 'login.html';
+    };
+
+    function showMessage(msg, type = 'error') {
+        forumMessage.textContent = msg;
+        forumMessage.className = `message-box active ${type}`;
+        setTimeout(() => { forumMessage.classList.remove('active'); }, 4000);
+    }
+
+    function setNav(level, extra) {
+        forumNav.innerHTML = '';
+        if (level === 'categories') return;
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn-secondary';
+        backBtn.textContent = level === 'topics' ? '← Back to Categories' : '← Back to Topics';
+        backBtn.onclick = () => {
+            if (level === 'topics') loadCategories();
+            else loadTopics(currentCategory.id);
+        };
+        forumNav.appendChild(backBtn);
+        if (level === 'topics') {
+            const newBtn = document.createElement('button');
+            newBtn.className = 'btn-primary ml-2';
+            newBtn.textContent = 'New Topic';
+            newBtn.onclick = () => showNewTopicForm();
+            forumNav.appendChild(newBtn);
+        }
+    }
+
+    async function loadCategories() {
+        setNav('categories');
+        forumContent.innerHTML = '<p class="text-gray-500">Loading categories...</p>';
+        try {
+            const res = await fetch(`${API}/forum_categories`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+            forumContent.innerHTML = '';
+            data.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'card mb-4 cursor-pointer hover:shadow-lg';
+                div.innerHTML = `<h3 class='font-bold text-lg'>${cat.name}</h3><p class='text-gray-600'>${cat.description}</p>`;
+                div.onclick = () => { currentCategory = cat; loadTopics(cat.id); };
+                forumContent.appendChild(div);
+            });
+        } catch (e) {
+            showMessage('Failed to load categories.', 'error');
+        }
+    }
+
+    async function loadTopics(categoryId) {
+        setNav('topics');
+        forumContent.innerHTML = '<p class="text-gray-500">Loading topics...</p>';
+        try {
+            const res = await fetch(`${API}/forum_topics/${categoryId}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+            forumContent.innerHTML = '';
+            if (data.topics.length === 0) {
+                forumContent.innerHTML = '<p class="text-gray-500">No topics yet. Click "New Topic" to create one!</p>';
+                return;
+            }
+            data.topics.forEach(topic => {
+                const div = document.createElement('div');
+                div.className = 'card mb-4 cursor-pointer hover:shadow-lg transition-all duration-150';
+                div.innerHTML = `
+                    <h3 class='font-bold text-lg text-indigo-700 mb-1'>${topic.title}</h3>
+                    <div class='text-indigo-500 mb-1'>${topic.description || topic.short_description || ''}</div>
+                    <div class='text-gray-600 text-sm mb-1'>By: ${topic.user_name || topic.created_by || 'Unknown'} on ${topic.created_at ? topic.created_at.split(' ')[0] : ''}</div>
+                    <div class='text-gray-700 text-sm mb-2'>${topic.content ? topic.content.substring(0, 120) : ''}${topic.content && topic.content.length > 120 ? '...' : ''}</div>
+                    <span class='inline-block text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded'>View Topic</span>
+                `;
+                div.onclick = () => { currentTopic = topic; loadTopic(topic.id); };
+                forumContent.appendChild(div);
+            });
+        } catch (e) {
+            showMessage('Failed to load topics.', 'error');
+        }
+    }
+
+    async function loadTopic(topicId) {
+        setNav('posts');
+        forumContent.innerHTML = '<p class="text-gray-500">Loading topic...</p>';
+        try {
+            const [topicRes, postsRes] = await Promise.all([
+                fetch(`${API}/forum_topic/${topicId}`),
+                fetch(`${API}/forum_posts/${topicId}`)
+            ]);
+            const topicData = await topicRes.json();
+            const postsData = await postsRes.json();
+            if (!topicData.success || !topicData.topic) throw new Error('Topic not found');
+            const topic = topicData.topic;
+            forumContent.innerHTML = '';
+            // Topic card
+            const topicDiv = document.createElement('div');
+            topicDiv.className = 'card mb-6';
+            topicDiv.innerHTML = `
+                <h3 class='text-2xl font-bold mb-1'>${topic.title}</h3>
+                <div class='text-indigo-500 mb-1'>${topic.short_description || topic.description || ''}</div>
+                <div class='text-gray-600 text-sm mb-1'>By: ${topic.user_name || topic.created_by || 'Unknown'} on ${topic.created_at ? topic.created_at.split(' ')[0] : ''}</div>
+                <div class='text-gray-800 mb-4'>${topic.content}</div>
+            `;
+            forumContent.appendChild(topicDiv);
+            // Reply form (only for students and mentors)
+            if (['student', 'mentor'].includes(currentUserRole)) {
+                const replyForm = document.createElement('form');
+                replyForm.className = 'card mb-4';
+                replyForm.innerHTML = `
+                    <label class='font-semibold mb-1 block'>Post a Reply</label>
+                    <textarea class='form-input mb-2' rows='3' placeholder='Your reply...' required></textarea>
+                    <div class='flex gap-2'>
+                        <button type='submit' class='btn-primary'>Post Reply</button>
+                    </div>
+                `;
+                replyForm.onsubmit = async function(e) {
+                    e.preventDefault();
+                    const textarea = replyForm.querySelector('textarea');
+                    const btn = replyForm.querySelector('button[type="submit"]');
+                    const content = textarea.value.trim();
+                    if (!content) return;
+                    btn.disabled = true;
+                    btn.textContent = 'Posting...';
+                    try {
+                        const res = await fetch(`${API}/create_post`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ topic_id: topic.id, post_content: content, user_email: currentUserEmail, parent_id: null })
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                            textarea.value = '';
+                            loadTopic(topic.id);
+                            showMessage('Reply posted!', 'success');
+                        } else {
+                            showMessage(result.message || 'Failed to post reply.', 'error');
+                        }
+                    } catch (err) {
+                        showMessage('Network error. Could not post reply.', 'error');
+                    }
+                    btn.disabled = false;
+                    btn.textContent = 'Post Reply';
+                };
+                forumContent.appendChild(replyForm);
+            } else {
+                const info = document.createElement('div');
+                info.className = 'mb-4 text-gray-500 text-center';
+                info.textContent = 'Only students and mentors can post replies.';
+                forumContent.appendChild(info);
+            }
+            // Replies
+            const repliesDiv = document.createElement('div');
+            repliesDiv.className = '';
+            if (postsData.success && postsData.posts.length > 0) {
+                postsData.posts.forEach(post => {
+                    const postDiv = document.createElement('div');
+                    postDiv.className = 'card mb-2';
+                    postDiv.innerHTML = `
+                        <div class='flex items-center gap-2 mb-1'>
+                            <span class='font-semibold text-indigo-700'>${post.user_email}</span>
+                            <span class='text-xs text-gray-400'>${post.created_at}</span>
+                        </div>
+                        <div class='text-gray-800 mb-1'>${post.content}</div>
+                    `;
+                    repliesDiv.appendChild(postDiv);
+                });
+            } else {
+                repliesDiv.innerHTML = '<p class="text-gray-500">No replies yet. Be the first to reply!</p>';
+            }
+            forumContent.appendChild(repliesDiv);
+        } catch (e) {
+            showMessage('Failed to load topic or replies.', 'error');
+        }
+    }
+
+    function showNewTopicForm() {
+        setNav('topics');
+        forumContent.innerHTML = `
+            <div class='card max-w-xl mx-auto'>
+                <h3 class='text-lg font-semibold mb-2'>Create New Topic</h3>
+                <form id='new-topic-form' class='space-y-4'>
+                    <input type='text' id='new-topic-title' class='form-input' placeholder='Topic Title' required>
+                    <input type='text' id='new-topic-description' class='form-input' placeholder='Short Description' required>
+                    <textarea id='new-topic-content' class='form-input' rows='4' placeholder='Topic Content' required></textarea>
+                    <div class='flex gap-2'>
+                        <button type='submit' class='btn-primary'>Post Topic</button>
+                        <button type='button' id='cancel-new-topic' class='btn-secondary'>Cancel</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.getElementById('cancel-new-topic').onclick = () => loadTopics(currentCategory.id);
+        const form = document.getElementById('new-topic-form');
+        form.onsubmit = async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('new-topic-title').value.trim();
+            const description = document.getElementById('new-topic-description').value.trim();
+            const content = document.getElementById('new-topic-content').value.trim();
+            if (!title || !description || !content) return;
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Posting...';
+            try {
+                const res = await fetch(`${API}/create_topic`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category_id: currentCategory.id,
+                        title,
+                        description,
+                        content,
+                        created_by: currentUserEmail
+                    })
+                });
+                const result = await res.json();
+                if (result.success && result.topic_id) {
+                    loadTopic(result.topic_id);
+                    showMessage('Topic created!', 'success');
+                } else {
+                    showMessage(result.message || 'Failed to create topic.', 'error');
+                }
+            } catch (err) {
+                showMessage('Network error. Could not create topic.', 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Post Topic';
+        };
+    }
+
+    // Initial load
+    loadCategories();
+    </script>
+</body>
+</html>
